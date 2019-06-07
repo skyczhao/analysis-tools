@@ -1,2 +1,7 @@
+jupyter
+
 xlrd
 pandas
+
+requests
+elasticsearch
