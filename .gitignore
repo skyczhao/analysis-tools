@@ -1,2 +1,7 @@
 
 .*
+*.xlsx
+*.docx
+*.pptx
+
+*.log
