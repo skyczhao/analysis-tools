@@ -2,8 +2,14 @@
 # -*- coding: UTF-8 -*-
 
 import json
+import time
 
-from elasticsearch import Elasticsearch
+from utils.timer import timer
+
+# from elasticsearch import Elasticsearch
+# 避免引入, 避免引入版本冲突
+# https://elasticsearch-py.readthedocs.io/en/master/
+# es 7不兼容低版本的查询接口, es 7取消了doc_type
 from elasticsearch.helpers import bulk
 
 
@@ -115,3 +121,47 @@ def insert_bulk(connection, index, doc_type, datas):
     print("action size: %d" % len(actions))
         
     return bulk(connection, actions, index=index, raise_on_error=False)
+
+
+@timer
+def scroll_parse(connection, index, doc_type, query, parser, batch_size=5, wait_time='3m'):
+    """
+    滚动查询全部数据
+    
+    注: 每次返回数量为 batch_size * shards
+    """
+    
+    # init the scroll
+    page = connection.search(index=index, doc_type=doc_type, body=query, size=batch_size, scroll=wait_time, search_type="scan")
+    total_size = page['hits']['total']
+    print("parsing: %s/%s, batch size: %d, query: %s" % (index, doc_type, batch_size, pretty_print(query)))
+    
+    # flag
+    flag = True
+    
+    # scroll
+    idx = 0
+    sid = page['_scroll_id']
+    length = 1 # 为了进入第一次循环
+    while length > 0:
+        # 真正获取数据
+        page = connection.scroll(scroll_id=sid, scroll=wait_time)
+        
+        # 处理数据
+        for hit in page['hits']['hits']:
+            key = hit['_id']
+            flag = parser(idx, key, hit)
+            
+            idx += 1
+            if not flag:
+                break
+            
+        # 准备下一轮循环
+        sid = page['_scroll_id']
+        length = len(page['hits']['hits'])
+        
+        print("# current size: %d, progress: %d/%d. At %.5f" % (length, idx, total_size, time.time()))
+        if not flag:
+            break
+            
+    return flag
