@@ -168,7 +168,7 @@ def scroll_parse(connection, index, doc_type, query, parser, batch_size=5, wait_
         sid = page['_scroll_id']
         length = len(page['hits']['hits'])
         
-        print("# current size: %d, progress: %d/%d. At %.5f" % (length, idx, total_size, time.time()))
+        print("# current size: %d, progress: %d/%d. At %.5f" % (length, idx, total_size, time.time()), flush=True)
         if not flag:
             break
             
