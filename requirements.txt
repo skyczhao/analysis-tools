@@ -2,6 +2,7 @@ jupyter
 
 xlrd
 openpyxl
+xlsxwriter
 pandas
 
 requests

@@ -25,7 +25,9 @@ def save_excel(sheet, path):
         print("column overflow")
         return
 
-    writer = pd.ExcelWriter(path)
+    # Solved: IllegalCharacterError
+    # Solved: UserWarning: Ignoring URL...
+    writer = pd.ExcelWriter(path, engine="xlsxwriter", options={'strings_to_urls': False})
     sheet.to_excel(writer, 'Sheet1')
     writer.save()
 
