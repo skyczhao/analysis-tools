@@ -66,7 +66,15 @@ def create_index(connection, index, doc_type, fields, shards=5, replica=1, dynam
     """
     
     properties = lines_to_prop(fields)
-    
+    create_index_with_prop(connection, index, doc_type, properties, shards, replica, dynamic)    
+
+
+def create_index_with_prop(connection, index, doc_type, properties, shards=5, replica=1, dynamic="strict"):
+    """
+    从properties创建索引
+
+    注: 应对从相近类型复制索引的场景
+    """    
     body = {
         "settings": {
             "number_of_shards": shards,
